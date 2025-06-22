@@ -1,0 +1,5 @@
+entry_points={
+    'console_scripts': [
+        'record_and_play_pose = lss_custom_control.record_and_play_pose:main',
+    ],
+},
