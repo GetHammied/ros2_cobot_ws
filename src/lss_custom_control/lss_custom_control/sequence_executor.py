@@ -89,21 +89,25 @@ class ArmAndGripperExecutor(Node):
         self.get_logger().info('Gripper action completed')
 
 
-def main():
+def execute_sequence():
     rclpy.init()
     node = ArmAndGripperExecutor()
 
     try:
-        # Ordered sequence of movements with delay between steps
         sequence = [
-            ('arm', load_position("arm_position_1")),
-            ('arm', load_position("arm_position_2")),
-            ('gripper', load_position("gripper_position_2")),
-            ('arm', load_position("arm_position_3")),
-            ('gripper', load_position("gripper_position_1")),
-            ('arm', load_position("arm_position_3")),
-            ('arm', load_position("arm_position_4")),
-            ('arm', load_position("arm_position_5"))
+            ('arm', load_position("kpos1")),
+            ('arm', load_position("kpos2")),
+            ('gripper', load_position("g1")),
+            ('arm', load_position("kpos3")),
+            ('gripper', load_position("g2")),
+            ('arm', load_position("kpos2")),
+            ('arm', load_position("kpos1")),
+            ('arm', load_position("kpos2")),
+            ('arm', load_position("kpos3")),
+            ('gripper', load_position("g1")),
+            ('arm', load_position("kpos2")),
+            ('arm', load_position("kpos1")),
+
         ]
 
         for move_type, value in sequence:
@@ -111,16 +115,22 @@ def main():
                 node.send_arm_trajectory(value)
             elif move_type == 'gripper':
                 if isinstance(value, list):
-                    value = value[0]  # Take first value if saved as [x]
+                    value = value[0]
                 node.send_gripper_command(value)
 
-            time.sleep(1.0)  # ⏱ Add delay between steps here
+            time.sleep(1.0)
+
+        return True
 
     except (FileNotFoundError, KeyError) as e:
         node.get_logger().error(str(e))
+        return False
 
-    node.destroy_node()
-    rclpy.shutdown()
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
 
 if __name__ == '__main__':
-    main()
+    execute_sequence()
+

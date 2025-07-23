@@ -1,0 +1,13 @@
+- group: arm
+  joints: &id001
+  - lss_arm_joint_1
+  - lss_arm_joint_2
+  - lss_arm_joint_3
+  - lss_arm_joint_4
+  pose: arm_pos1
+- group: arm
+  joints: *id001
+  pose: arm_pos2
+- group: arm
+  joints: *id001
+  pose: arm_pos3

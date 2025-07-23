@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
         entry_points={
         'console_scripts': [
-            'sequence_executor = lss_custom_control.sequence_executor:main',
+            'sequence_executor = lss_custom_control.sequence_executor:execute_sequence',
             'read_joint_position = lss_custom_control.read_joint_position:main',
             'planner_executor = lss_custom_control.planner_executor:main',
         ],

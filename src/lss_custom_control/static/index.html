@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Robot Control Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      background: #f5f5f5;
+      margin: 0;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin: 20px 0;
+    }
+
+    .section {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 15px 10px;
+      margin: 10px auto;
+      max-width: 600px;
+    }
+
+    .section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+
+    .control {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 0 10px;
+    }
+
+    .control input,
+    .control select,
+    .control button {
+      font-size: 1.1rem;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #f0f0f0;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #e0e0e0;
+    }
+  </style>
+
+  <script>
+    async function callAPI(endpoint, method = "POST") {
+      const res = await fetch(endpoint, { method });
+      const data = await res.json();
+      alert(JSON.stringify(data, null, 2));
+    }
+
+    async function callAPIWithQuery(endpoint, params) {
+      const query = new URLSearchParams(params).toString();
+      return callAPI(`${endpoint}?${query}`);
+    }
+
+    async function listSequences() {
+      const res = await fetch("/list_sequences");
+      const data = await res.json();
+      alert("Available Sequences:\n" + data.sequences.join("\n"));
+    }
+  </script>
+</head>
+
+<body>
+  <h1>🤖 Robot Control Panel</h1>
+
+  <div class="section">
+    <h2>🔋 Power</h2>
+    <div class="control">
+      <button onclick="callAPI('/power_on')">Power On</button>
+      <button onclick="callAPI('/power_off')">Power Off</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>💾 Save Position</h2>
+    <div class="control">
+      <input type="text" id="saveName" placeholder="Position name">
+      <select id="saveGroup">
+        <option value="arm">arm</option>
+        <option value="gripper">gripper</option>
+      </select>
+      <button onclick="callAPIWithQuery('/save_position', { name: saveName.value, group: saveGroup.value })">
+        Save Position
+      </button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>▶️ Run Sequence</h2>
+    <div class="control">
+      <button onclick="callAPI('/run_sequence')">Run Raw Sequence</button>
+      <input type="text" id="plannerName" placeholder="Planner sequence name">
+      <button onclick="callAPIWithQuery('/run_planner_sequence', { name: plannerName.value })">
+        Run Planner Sequence
+      </button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🧱 Build Sequence</h2>
+    <div class="control">
+      <input type="text" id="builderName" placeholder="New sequence name">
+      <button onclick="callAPIWithQuery('/start_sequence_builder', { name: builderName.value })">
+        Start Sequence
+      </button>
+      <select id="builderGroup">
+        <option value="arm">arm</option>
+        <option value="gripper">gripper</option>
+      </select>
+      <button onclick="callAPIWithQuery('/add_pose_to_sequence', { group: builderGroup.value })">
+        Add Current Pose
+      </button>
+      <button onclick="callAPI('/finalize_sequence')">Finalize Sequence</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🗑️ Sequence Management</h2>
+    <div class="control">
+      <input type="text" id="deleteName" placeholder="Sequence name to delete">
+      <button onclick="callAPIWithQuery('/delete_sequence', { name: deleteName.value })">Delete Sequence</button>
+      <button onclick="listSequences()">List Sequences</button>
+    </div>
+  </div>
+</body>
+</html>

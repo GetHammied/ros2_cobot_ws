@@ -10,6 +10,14 @@ import time
 
 SAVE_PATH = os.path.expanduser('~/ros2_ws/src/lss_custom_control/lss_custom_control/saved_positions.yaml')
 
+def load_sequence(sequence_name):
+    seq_path = os.path.expanduser(f'~/ros2_ws/src/lss_custom_control/lss_custom_control/sequences/{sequence_name}.yaml')
+    if not os.path.exists(seq_path):
+        raise FileNotFoundError(f"Sequence file not found: {seq_path}")
+    with open(seq_path, 'r') as f:
+        return yaml.safe_load(f)
+
+
 def load_position(name):
     if not os.path.exists(SAVE_PATH):
         raise FileNotFoundError(f"Position file not found: {SAVE_PATH}")
@@ -35,10 +43,10 @@ class MoveItPlannerClient(Node):
         goal_msg = MoveGroup.Goal()
         
         request = MotionPlanRequest()
-        request.planner_id = "BiTRRT"
+        request.planner_id = "RRTstarkConfigDefault"  # or "ESTkConfigDefault"
         request.group_name = group_name
-        request.max_velocity_scaling_factor = 0.2  # modify
-        request.max_acceleration_scaling_factor = 0.1
+        request.max_velocity_scaling_factor = 0.8  # modify 
+        request.max_acceleration_scaling_factor = 0.6
 
         constraint = Constraints()
 
@@ -46,8 +54,8 @@ class MoveItPlannerClient(Node):
             jc = JointConstraint()
             jc.joint_name = name
             jc.position = position
-            jc.tolerance_above = 0.01
-            jc.tolerance_below = 0.01
+            jc.tolerance_above = 0.005
+            jc.tolerance_below = 0.005
             jc.weight = 1.0
             constraint.joint_constraints.append(jc)
 
@@ -74,34 +82,43 @@ class MoveItPlannerClient(Node):
         self.get_logger().info(f'Motion execution for {group_name} finished.')
 
 
-def main():
+
+def run_planned_sequence(sequence_name):
     rclpy.init()
     node = MoveItPlannerClient()
 
     try:
-        # Define joint names
         arm_joints = ["lss_arm_joint_1", "lss_arm_joint_2", "lss_arm_joint_3", "lss_arm_joint_4"]
         gripper_joints = ["lss_arm_joint_5"]
 
-        # Ordered sequence of actions
-        sequence = [
-            ("lss_arm", arm_joints, "arm_position_1"),
-            ("lss_arm", arm_joints, "arm_position_2"),
-            ("gripper", gripper_joints, "gripper_position_2"),
-            ("lss_arm", arm_joints, "arm_position_3"),
-            ("gripper", gripper_joints, "gripper_position_1"),
-            ("lss_arm", arm_joints, "arm_position_4"),
-            ("lss_arm", arm_joints, "arm_position_5"),
-        ]
+        sequence = load_sequence(sequence_name)
 
-        for group, joints, position_name in sequence:
-            plan_and_execute(node, group, joints, position_name, delay=1.0)
+        GROUP_NAME_MAP = {
+            "arm": "lss_arm",     # this must match your MoveIt SRDF group
+            "gripper": "gripper"
+        }
+
+        GROUP_JOINTS = {
+            "arm": ["lss_arm_joint_1", "lss_arm_joint_2", "lss_arm_joint_3", "lss_arm_joint_4"],
+            "gripper": ["lss_arm_joint_5"]
+        }
+
+        for item in sequence:
+            original_group = item["group"]
+            group = GROUP_NAME_MAP.get(original_group, original_group)
+            joints = item.get("joints", GROUP_JOINTS[original_group])
+            pose = item["pose"]
+            plan_and_execute(node, group, joints, pose)
+
 
     except (FileNotFoundError, KeyError) as e:
         node.get_logger().error(str(e))
 
-    node.destroy_node()
-    rclpy.shutdown()
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
 
 if __name__ == '__main__':
-    main()
+    run_planned_sequence("test1")  # Replace with your desired sequence file name (without .yaml)
+

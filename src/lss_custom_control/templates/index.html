@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Robot Control</title>
+</head>
+<body>
+    <h1>🤖 Robot Control Panel</h1>
+    <button onclick="fetch('/power_on', { method: 'POST' })">Power ON</button>
+    <button onclick="fetch('/power_off', { method: 'POST' })">Power OFF</button>
+    <br><br>
+    <form action="/start_sequence_builder" method="post">
+        <input type="text" name="name" placeholder="Sequence name" required />
+        <button type="submit">Start Sequence</button>
+    </form>
+</body>
+</html>

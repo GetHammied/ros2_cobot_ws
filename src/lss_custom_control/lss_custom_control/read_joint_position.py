@@ -65,18 +65,27 @@ class JointReader(Node):
             yaml.dump(data, f)
 
         self.get_logger().info(f'📁 Saved to {SAVE_PATH}')
-        rclpy.shutdown()
+
 
 def main():
-    parser = argparse.ArgumentParser(description="Read and save joint positions")
-    parser.add_argument('--name', required=True, help="Name to save the joint position under")
-    parser.add_argument('--group', choices=['arm', 'gripper'], required=True, help="Joint group to record")
-    args, unknown = parser.parse_known_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--name', required=True)
+    parser.add_argument('--group', choices=['arm', 'gripper'], required=True)
+    args, _ = parser.parse_known_args()
 
     rclpy.init()
     node = JointReader(args.name, args.group)
-    print(f"🔍 Waiting for /joint_states for group '{args.group}'... Move the robot and run this to capture positions.")
-    rclpy.spin(node)
+    print(f"🔍 Waiting for /joint_states for group '{args.group}'...")
+
+    try:
+        while rclpy.ok() and not node.got_data:
+            rclpy.spin_once(node, timeout_sec=0.1)
+    except KeyboardInterrupt:
+        print("❌ Interrupted by user.")
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()
