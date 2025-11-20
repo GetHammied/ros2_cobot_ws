@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Roboter-Steuerung</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      background: #f5f5f5;
+      margin: 0;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin: 20px 0;
+    }
+
+    .section {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 15px 10px;
+      margin: 10px auto;
+      max-width: 600px;
+    }
+
+    .section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+
+    .control {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 0 10px;
+    }
+
+    .control input,
+    .control select,
+    .control button {
+      font-size: 1.1rem;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #f0f0f0;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #e0e0e0;
+    }
+
+    #emergency-stop {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 9999;
+      padding: 1rem 1.5rem;
+      background: #ff4d4d;
+      color: white;
+      font-weight: bold;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+    }
+  </style>
+  <script>
+    const hiddenSequences = ["home", "current_position"];
+    
+    async function powerOffWithWarning() {
+        const res = await fetch("/power_off", { method: "POST" });
+        const data = await res.json();
+
+        // Show the warning message returned by the server
+        alert(data.status);  // e.g. ⚠️ Robot will go limp in 3 seconds
+    }
+    
+
+    async function callAPI(endpoint, method = "POST") {
+      const res = await fetch(endpoint, { method });
+      const data = await res.json();
+      alert(`💬 Antwort vom Server:\n${data.message || JSON.stringify(data, null, 2)}`);
+    }
+
+    async function callAPIWithQuery(endpoint, params) {
+      const query = new URLSearchParams(params).toString();
+      return callAPI(`${endpoint}?${query}`);
+    }
+
+    async function listSequences() {
+      const res = await fetch("/list_sequences");
+      const data = await res.json();
+      alert("Verfügbare Sequenzen:\n" + data.sequences.join("\n"));
+    }
+
+    async function populateDeleteDropdown() {
+      const res = await fetch("/get_sequence_names");
+      const data = await res.json();
+      const dropdown = document.getElementById("deleteDropdown");
+      dropdown.innerHTML = '<option value="">-- Sequenz auswählen --</option>';
+      data.sequences.filter(name => !hiddenSequences.includes(name)).forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        dropdown.appendChild(option);
+      });
+    }
+
+    async function deleteSelectedSequence() {
+      const dropdown = document.getElementById("deleteDropdown");
+      const name = dropdown.value;
+      if (!name) {
+        alert("Bitte wähle eine Sequenz zum Löschen aus.");
+        return;
+      }
+      const res = await fetch(`/delete_sequence?name=${encodeURIComponent(name)}`, { method: "POST" });
+      const data = await res.json();
+      alert(`🗑️ Sequenz '${data.sequence_name}' wurde gelöscht.`);
+      await populateDeleteDropdown();
+      await loadSequenceButtons();
+    }
+
+    async function populatePickSequenceDropdown() {
+      const res = await fetch("/get_sequence_names");
+      const data = await res.json();
+      const dropdown = document.getElementById("pickSequenceDropdown");
+      dropdown.innerHTML = '<option value="">-- Pick-Sequenz auswählen --</option>';
+      data.sequences.filter(name => !hiddenSequences.includes(name)).forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        dropdown.appendChild(option);
+      });
+    }
+
+    async function generatePlaceSequence() {
+      const dropdown = document.getElementById("pickSequenceDropdown");
+      const pickName = dropdown.value;
+      if (!pickName) {
+        alert("Bitte wähle eine Pick-Sequenz aus.");
+        return;
+      }
+      const res = await fetch(`/generate_place_sequence?from_sequence=${encodeURIComponent(pickName)}`, { method: "POST" });
+      const data = await res.json();
+      if (data.error) {
+        alert(`❌ Fehler: ${data.error}`);
+      } else {
+        alert(`✅ Ablage-Sequenz erstellt: ${data.name}`);
+        await loadSequenceButtons();
+        await populateDeleteDropdown();
+        await populatePickSequenceDropdown();
+      }
+    }
+
+    async function loadSequenceButtons() {
+      const container = document.getElementById("sequenceButtons");
+      const res = await fetch("/get_sequence_names");
+      const data = await res.json();
+      if (!data.sequences.length) {
+        container.innerHTML = "<p>Keine Sequenzen gefunden.</p>";
+        return;
+      }
+      container.innerHTML = "";
+      data.sequences.filter(name => !hiddenSequences.includes(name)).forEach(name => {
+        const btn = document.createElement("button");
+        btn.textContent = `▶️ Ausführen: ${name}`;
+        btn.onclick = () => callAPIWithQuery("/run_planner_sequence", { name });
+        container.appendChild(btn);
+      });
+    }
+
+    async function finalizeSequence() {
+      const res = await fetch("/finalize_sequence", { method: "POST" });
+      const data = await res.json();
+      alert(`💾 Sequenz '${data.name}' gespeichert (${data.steps} Schritte).`);
+      location.reload();
+    }
+
+    window.onload = () => {
+      loadSequenceButtons();
+      populateDeleteDropdown();
+      populatePickSequenceDropdown();
+    };
+  </script>
+</head>
+<body>
+  <h1>🤖 Roboter-Steuerung</h1>
+  <button id="emergency-stop" onclick="callAPI('/shutdown_robot')">
+    🛑 NOT-STOP
+  </button>
+
+  <div class="section">
+    <h2>🔋 Stromversorgung</h2>
+    <div class="control">
+      <button onclick="callAPI('/power_on')">Einschalten</button>
+      <button onclick="powerOffWithWarning()">Ausschalten</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🏠 Startposition</h2>
+    <div class="control">
+      <button style="background: #a6f1a6;" onclick="callAPI('/go_home')">Home-Position anfahren</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📂 Sequenzen ausführen</h2>
+    <div class="control" id="sequenceButtons">
+      <p>Sequenzen werden geladen...</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🧱 Sequenz erstellen</h2>
+    <div class="control">
+      <input type="text" id="builderName" placeholder="Neuer Sequenzname">
+      <button onclick="callAPIWithQuery('/start_sequence_builder', { name: builderName.value })">
+        Sequenz starten
+      </button>
+    </div>
+
+    <div class="control">
+      <button onclick="callAPIWithQuery('/add_pose_to_sequence', { group: 'arm' })">
+        Aktuelle Armposition hinzufügen
+      </button>
+      <button style="background: #d2f8d2;" onclick="callAPI('/add_open_gripper')">
+        Greifer öffnen
+      </button>
+      <button style="background: #f8d2d2;" onclick="callAPI('/add_close_gripper')">
+        Greifer schließen
+      </button>
+      <button onclick="finalizeSequence()">Sequenz speichern</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🔁 Ablage-Sequenz erzeugen</h2>
+    <div class="control">
+      <select id="pickSequenceDropdown">
+        <option value="">-- Pick-Sequenz auswählen --</option>
+      </select>
+      <button style="background: #f5e68a;" onclick="generatePlaceSequence()">
+        Ablage-Sequenz erzeugen
+      </button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🗑️ Sequenzverwaltung</h2>
+    <div class="control">
+      <select id="deleteDropdown">
+        <option value="">-- Sequenz auswählen --</option>
+      </select>
+      <button onclick="deleteSelectedSequence()">Löschen</button>
+      <button onclick="listSequences()">Alle anzeigen</button>
+    </div>
+  </div>
+</body>
+</html>

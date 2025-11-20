@@ -1,0 +1,7 @@
+- group: arm
+  joints:
+  - lss_arm_joint_1
+  - lss_arm_joint_2
+  - lss_arm_joint_3
+  - lss_arm_joint_4
+  pose: temp_pose

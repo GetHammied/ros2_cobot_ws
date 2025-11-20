@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!--       -->
+  <!-- Macro -->
+  <!--       -->
+  <xacro:macro name="lss_arm_4dof" params="
+    prefix:=lss_arm_
+  ">
+    <group name="lss_arm">
+        <chain base_link="${prefix}link_0" tip_link="${prefix}ee"/>
+    </group>
+    
+    <group_state group="lss_arm" name="home" >
+        <joint name="${prefix}joint_1" value="0.0"/>
+        <joint name="${prefix}joint_2" value="1.7"/>
+        <joint name="${prefix}joint_3" value="-0.7"/>
+        <joint name="${prefix}joint_4" value="-1.7"/>
+    </group_state>
+
+    <group_state name="my_new_pose" group="lss_arm">
+      <joint name="lss_arm_joint_1" value="-2.4190263432641403" />
+      <joint name="lss_arm_joint_2" value="-0.09948376736367677" />
+      <joint name="lss_arm_joint_4" value="0.8499753457212385" />
+      <joint name="lss_arm_joint_3" value="-0.900589894029074" />
+    </group_state>
+    <group_state name="pre_close" group="lss_arm">
+      <joint name="lss_arm_joint_1" value="-2.420771672516135" />
+      <joint name="lss_arm_joint_2" value="0.2007128639793479" />
+      <joint name="lss_arm_joint_4" value="0.6300638599699528" />
+      <joint name="lss_arm_joint_3" value="-0.8796459430051421" />
+      <joint name="lss_arm_joint_5" value="0.7819075048934596" />
+    </group_state>
+    <group_state name="lift" group="lss_arm">
+      <joint name="lss_arm_joint_1" value="-2.420771672516135" />
+      <joint name="lss_arm_joint_2" value="0.41189770347066174" />
+      <joint name="lss_arm_joint_4" value="-0.0017453292519943296" />
+      <joint name="lss_arm_joint_3" value="-0.5044001538263613" />
+      <joint name="lss_arm_joint_5" value="0.7819075048934596" />
+    </group_state>
+
+
+
+    
+    <disable_collisions link1="${prefix}link_0" link2="${prefix}link_1" reason="Adjacent"/>
+    <disable_collisions link1="${prefix}link_0" link2="${prefix}link_2" reason="Never"/>
+    <disable_collisions link1="${prefix}link_1" link2="${prefix}link_2" reason="Adjacent"/>
+    <disable_collisions link1="${prefix}link_2" link2="${prefix}link_3" reason="Adjacent"/>
+    <disable_collisions link1="${prefix}link_3" link2="${prefix}link_4" reason="Adjacent"/>
+  </xacro:macro>
+
+  <xacro:macro name="lss_arm_5dof" params="
+    prefix:=lss_arm_
+  ">
+    <group name="lss_arm">
+        <chain base_link="${prefix}link_0" tip_link="${prefix}ee"/>
+    </group>
+    
+    <group_state group="lss_arm" name="home" >
+        <joint name="${prefix}joint_1" value="0.0"/>
+        <joint name="${prefix}joint_2" value="1.7"/>
+        <joint name="${prefix}joint_3" value="-0.7"/>
+        <joint name="${prefix}joint_4" value="-1.7"/>
+        <joint name="${prefix}joint_6" value="0.0"/>
+    </group_state>
+    
+      <group_state name="my_saved_pose" group="arm">
+    <joint name="lss_arm_joint_1" value="2.323" />
+    <joint name="lss_arm_joint_2" value="2.005" />
+    <joint name="lss_arm_joint_4" value="0.790" />
+    <joint name="lss_arm_joint_3" value="-0.843" />
+    <joint name="lss_arm_joint_5" value="0.014" />
+    </group_state>
+
+    <disable_collisions link1="${prefix}link_0" link2="${prefix}link_1" reason="Adjacent"/>
+    <disable_collisions link1="${prefix}link_0" link2="${prefix}link_2" reason="Never"/>
+    <disable_collisions link1="${prefix}link_1" link2="${prefix}link_2" reason="Adjacent"/>
+    <disable_collisions link1="${prefix}link_2" link2="${prefix}link_3" reason="Adjacent"/>
+    <disable_collisions link1="${prefix}link_3" link2="${prefix}link_4" reason="Adjacent"/>
+    <disable_collisions link1="${prefix}link_4" link2="${prefix}link_5" reason="Adjacent"/>
+  </xacro:macro>
+</robot>

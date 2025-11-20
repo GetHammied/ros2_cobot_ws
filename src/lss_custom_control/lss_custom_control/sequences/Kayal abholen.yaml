@@ -1,0 +1,20 @@
+- group: arm
+  joints: &id001
+  - lss_arm_joint_1
+  - lss_arm_joint_2
+  - lss_arm_joint_3
+  - lss_arm_joint_4
+  pose: arm_pos147
+- group: arm
+  joints: *id001
+  pose: arm_pos148
+- group: gripper
+  joints:
+  - lss_arm_joint_5
+  pose: close_gripper
+- group: arm
+  joints: *id001
+  pose: arm_pos149
+- group: arm
+  joints: *id001
+  pose: arm_pos150
