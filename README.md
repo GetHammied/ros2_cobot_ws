@@ -13,8 +13,3 @@ For full setup, installation and detailed user instructions, see the **Technical
 The handbook covers OS installation, ROS 2 + MoveIt + Gazebo setup, prebuilt system image, troubleshooting, and a step-by-step guide for using this repo.
 
 ---
-
-## Repository Layout
-
-The core package lives under:
-
