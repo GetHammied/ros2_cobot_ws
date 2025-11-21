@@ -9,7 +9,8 @@ It provides:
 
 For full setup, installation and detailed user instructions, see the **Technical Handbook (PDF)**:  
 👉 https://drive.google.com/drive/folders/1wthesaKt-7BLF55XStDhsECmGNdHAazO?usp=drive_link  
-
 The handbook covers OS installation, ROS 2 + MoveIt + Gazebo setup, prebuilt system image, troubleshooting, and a step-by-step guide for using this repo.
 
 ---
+ Full System Image 
+👉 https://drive.google.com/drive/folders/1v9-MMbfGqaEXU1VGlalJQO0C4uolLZkK?usp=drive_link
